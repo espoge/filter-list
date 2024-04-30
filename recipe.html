@@ -1,0 +1,128 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body>
+
+  <div class="container mx-auto mt-4">
+    <div class="flex justify-center mb-3">
+      <div class="basis-1/3">
+        <label class="block mb-1">Find Recipe by ingredient</label>
+        <input type="text" id="search" class="border-2 p-2 border-sky-600 rounded-md w-full"/> 
+      </div>
+
+    </div>
+    <div class="card-list" id="list">
+    </div>
+ 
+  </div>
+</body>
+<script>
+  
+  let recipeData=[]
+    
+  const search = document.getElementById('search')
+    
+  const list = document.getElementById('list')
+  
+  
+  async function recipe() {
+    const response = await fetch("https://raw.githubusercontent.com/kodecocodes/recipes/master/Recipes.json");
+    const recipeData = await response.json();
+    return recipeData
+  }
+  
+  function renderAnyResult() {
+    list.classList.remove('grid')
+   const textAnyResult = document.createElement('p')
+    textAnyResult.classList="text-center text-lg"
+    textAnyResult.appendChild(document.createTextNode('Sorry! Any recipe found'))
+    list.appendChild(textAnyResult)
+
+  }
+  
+  function renderRecipe(recipe) {
+    
+     recipe.forEach(element => {
+      list.classList = 'grid grid-cols-4 gap-4'
+       const card = document.createElement('div')
+       card.className ="border-2 border-neutral-400 rounded-md card p-2"
+ 
+       const image = document.createElement('img')
+       image.src = element.imageURL
+       
+       card.appendChild(image)
+       
+       const title = document.createElement('h2')
+       title.classList = 'text-lg text-cyan-600'
+       title.appendChild(document.createTextNode(element.name))
+       
+       card.appendChild(title)
+
+       const ingredientsTitle = document.createElement('p')
+       ingredientsTitle.classList = "font-bold"
+       ingredientsTitle.appendChild(document.createTextNode('Ingredients'))
+       card.appendChild(ingredientsTitle)
+
+       const listWrapper = document.createElement('ul')
+       listWrapper.className = "flex flex-wrap gap-2"
+       element.ingredients.forEach((el, i) => {
+         const listItem = document.createElement("li")
+         const pipe = document.createElement("span")
+
+         pipe.appendChild(document.createTextNode(" |"))
+         
+         listWrapper.appendChild(listItem)
+         listItem.appendChild(document.createTextNode(el.name))
+         if(element.ingredients.length > i +1) {
+           listItem.appendChild(pipe)
+         }
+        })
+        card.appendChild(listWrapper)
+        
+        list.appendChild(card)
+        
+      });
+      
+      
+    }
+    
+    search.addEventListener('input', function(e) {
+      getRecipeByIngredients(e.target.value)
+    }) 
+
+    
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        recipeData = await recipe();
+        renderRecipe(recipeData)
+      } catch (error) {
+        console.error('Si è verificato un errore durante il recupero della ricetta:', error);
+      }
+    });
+    
+    function getRecipeByIngredients(value) {
+      while (list.firstChild) {
+        list.removeChild(list.firstChild);
+    }
+
+      const filteredRecipe = recipeData.filter(el => {
+        return el.ingredients.some(ing => ing.name.includes(value))
+      })
+      console.log(filteredRecipe)
+      if(filteredRecipe.length > 0) {
+        renderRecipe(filteredRecipe)
+      }else {
+        renderAnyResult()
+      }
+    }
+  </script>
+
+</html>
